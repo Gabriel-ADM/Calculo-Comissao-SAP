@@ -51,7 +51,7 @@ def queryVendas(colunaNome, mes, ano, rota, conexaoBD):
     
     return colunaValores
 
-#------------------ DATABASE CONNECTION -------------------
+#------------------ CONEXAO BANCO DE DADOS -------------------
 SAPcredenciais = config.credentials["HANA"]
 SAPconexao = db.connect(
     address = SAPcredenciais["address"],
@@ -135,7 +135,7 @@ def calculoComissao(mesDesejado, anoDesejado, rotaDesejada, excelEntrada):
     }
     # print(products)
         
-    #------------------ IMPORTANT COLUMNS ------------------
+    #------------------ COLUNAS IMPORTANTES ------------------
     sold = {
         "rota": queryVendas("Rota", mesDesejado, anoDesejado, rotaDesejada, SAPconexao),
         "produto": queryVendas(r"Descrição do item/serviço",  mesDesejado, anoDesejado, rotaDesejada, SAPconexao),
@@ -289,6 +289,7 @@ def calculoComissao(mesDesejado, anoDesejado, rotaDesejada, excelEntrada):
     
     # print(json.dumps(vlrsFaturados, indent=1, cls=DecimalEncoder))
 
+#----------------------- COLUNAS ADICIONADAS NO DATAFRAME -----------------------------
     output = pd.DataFrame(vlrsFaturados).transpose()
     output["Desconto Acordo Comercial R$"] = 0.0
     output["Deflator R$"] = 0.0
@@ -312,7 +313,7 @@ def calculoComissao(mesDesejado, anoDesejado, rotaDesejada, excelEntrada):
         #     output["% Real"][i] = "Sem meta"
             output["% Real"][i] = 0
 
-
+#----------------------- CALCULO DA COMISSAO -----------------------------
     for i in range(len(output["Comissão R$"])):
         if output["Tipo Comissao"][i] == "GRUPO":
             porcentGrupo = (float(output["Volume"].loc[output["Grupo Produto"] == output["Grupo Produto"][i]].sum()) / output["Meta"].loc[output["Grupo Produto"] == output["Grupo Produto"][i]].sum())
@@ -394,6 +395,8 @@ def calculoComissao(mesDesejado, anoDesejado, rotaDesejada, excelEntrada):
                                     #             tabelaComissao.to_excel(arquivoSaida, startrow=linhaPlanilha, header=False)
                                     #         linhaPlanilha += len(tabelaComissao)
 
+
+#----------------------- INSERIR INFORMAÇÃO EM TABELA SAP -----------------------------
 linhaPlanilha = 0
 
 for i in range(len(rotas)):
